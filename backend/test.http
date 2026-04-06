@@ -1,0 +1,7 @@
+POST http://localhost:5000/api/attendance/mark
+Content-Type: application/json
+
+{
+  "studentId": "101",
+  "name": "Abhishek"
+}
