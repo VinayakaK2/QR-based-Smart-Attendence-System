@@ -5,260 +5,374 @@
 
 ---
 
-# 1. 🧠 Problem Statement
+# 1. 🎯 Problem Statement
 
-In many colleges, attendance is still recorded manually or via basic QR systems that are vulnerable to proxy attendance. Students can mark attendance without being physically present or by sharing QR codes.
+Traditional attendance systems (manual or QR-based) are:
 
-There is a need for a secure, real-time, and tamper-resistant attendance system that ensures only actively present students are marked present.
+* Time-consuming
+* Prone to proxy attendance
+* Lack identity verification
+* Do not ensure physical presence
 
 ---
 
 # 2. 🎯 Objective
 
-Build a QR-based attendance system integrated into a mobile/web platform that:
-- Ensures real-time attendance marking
-- Minimizes proxy attendance
-- Tracks active student presence during session
-- Provides a simple interface for teachers and students
+Build a **web-based smart attendance system** that ensures:
+
+* Only registered students can mark attendance
+* Student identity is verified via face recognition
+* Attendance is allowed only within a valid session time
+* Students must be physically present (via location constraint)
 
 ---
 
-# 3. 👥 Target Users
+# 3. 👥 User Roles
 
-### Primary Users:
-- Students
-- Teachers
+## 3.1 Lecturer
 
-### Secondary Users:
-- College administration (optional future scope)
+* Create sections
+* Start/stop attendance sessions
+* Define session duration
+* View attendance reports
 
----
+## 3.2 Student
 
-# 4. 💡 Solution Overview
-
-The system will:
-1. Allow teachers to create a live attendance session
-2. Generate a unique QR code for that session
-3. Students scan QR via mobile app/web
-4. Attendance is recorded ONLY if:
-   - Session is active
-   - Student remains active in app during session
-5. If student exits app → attendance invalidated
+* Register with face data
+* Join section
+* Scan QR and mark attendance
 
 ---
 
-# 5. 🔥 Key Features (MVP)
+# 4. 🧩 Core Features
 
-## 5.1 Teacher Side
-- Login / Authentication
-- Start attendance session
-- Generate dynamic QR code
-- End session
-- View attendance list
+## 4.1 Section Management
 
-## 5.2 Student Side
-- Login / Authentication
-- Scan QR code
-- Join attendance session
-- Active presence tracking
+* Lecturer creates section
+* Generates **static QR (section-only)**
 
-## 5.3 System Features
-- Session-based attendance
-- Anti-proxy mechanism:
-  - Session validation
-  - App activity tracking
-- Backend validation
-- Data storage
+## 4.2 Student Registration
 
----
+* Name, branch, section
+* Mandatory face capture
+* Store **face embedding (NOT raw image)**
 
-# 6. ❌ Non-Goals (Important)
+## 4.3 Session Management
 
-(Not included in MVP)
-- Face recognition
-- GPS tracking
-- AI analytics
-- Multi-institution scaling
-- Advanced reporting dashboards
+* Lecturer starts session
+* Sets duration (e.g., 10 mins)
+* System generates **time-bound QR**
+
+## 4.4 Attendance Flow
+
+* Student scans QR
+* Captures face
+* Location verified
+* Face matched with stored embedding
+* Attendance recorded if valid
 
 ---
 
-# 7. 🔄 User Flow
+# 5. ⚙️ Functional Requirements
 
-## 7.1 Teacher Flow
-1. Login
-2. Click "Start Session"
-3. System generates session ID + QR code
-4. Display QR on screen
-5. Monitor live attendance count
-6. End session
-7. View attendance report
+## 5.1 Lecturer
 
-## 7.2 Student Flow
-1. Login
-2. Click "Scan QR"
-3. Scan teacher’s QR
-4. System validates session
-5. Student enters active session
-6. App tracks activity
-7. Attendance marked after validation
+* Create section
+* Start session with duration
+* End session manually (optional)
+* View attendance list
+
+## 5.2 Student
+
+* Register with face
+* Scan QR
+* Submit face + location
+* View attendance status
 
 ---
 
-# 8. 🧩 Functional Requirements
+# 6. 🔐 Non-Functional Requirements
 
-## 8.1 Authentication
-- Users must login (Student / Teacher role)
-
-## 8.2 QR Generation
-- Unique QR per session
-- Contains session ID (not sensitive data)
-
-## 8.3 QR Scanning
-- Camera-based scanning
-- Extract session ID
-
-## 8.4 Attendance Validation
-- Check:
-  - Session active
-  - Student not already marked
-  - Valid request timing
-
-## 8.5 Active Presence Tracking
-- Detect:
-  - App minimized
-  - Tab switched (for web)
-- If inactive → invalidate attendance
-
-## 8.6 Session Management
-- Session start / end
-- Timeout support
-
-## 8.7 Data Storage
-Store:
-- Student ID
-- Session ID
-- Timestamp
-- Status (valid / invalid)
+* Response time < 2 sec
+* Face match accuracy > 90%
+* Secure API (JWT auth)
+* Scalable to 1000+ users
 
 ---
 
-# 9. ⚙️ Non-Functional Requirements
+# 7. 🏗️ System Architecture
 
-- System should handle multiple users simultaneously
-- Response time < 2 seconds
-- Secure API endpoints
-- Minimal battery usage (for mobile)
-
----
-
-# 10. 🏗️ System Architecture
-
-### High-Level Architecture
-
-Client Layer:
-- Mobile App / Web App (Student)
-- Web Panel (Teacher)
-
-Backend Layer:
-- REST API Server
-
-Database:
-- Attendance records
-- Users
-- Sessions
+```
+[ Browser (React) ]
+        ↓
+[ Backend API (Flask / Node) ]
+        ↓
+[ Face Recognition Service (Python) ]
+        ↓
+[ Database (PostgreSQL / MySQL) ]
+```
 
 ---
 
-# 11. 🔌 Tech Stack (Suggested)
+# 8. 🔄 System Flow
 
-Frontend:
-- React / Flutter / React Native
+## 8.1 Registration Flow
 
-Backend:
-- Node.js (Express) / Django
-
-Database:
-- MongoDB / PostgreSQL
-
-QR:
-- QR generation library
-- QR scanner library
+1. Student enters details
+2. Captures face
+3. Backend generates embedding
+4. Store in DB
 
 ---
 
-# 12. 🗄️ Database Design (Basic)
+## 8.2 Attendance Flow
 
-### Users Table
-- id
-- name
-- role (student/teacher)
-
-### Sessions Table
-- session_id
-- teacher_id
-- start_time
-- end_time
-- status
-
-### Attendance Table
-- id
-- student_id
-- session_id
-- timestamp
-- status (valid/invalid)
-
----
-
-# 13. 🔐 Security Considerations
-
-- Prevent duplicate attendance
-- Validate session server-side
-- Avoid exposing sensitive data in QR
-- Basic authentication protection
-
----
-
-# 14. ⚠️ Risks & Limitations
-
-- Cannot fully eliminate proxy attendance
-- App activity tracking may vary across devices
-- Network dependency
-
----
-
-# 15. 📊 Success Metrics
-
-- Successful attendance marking rate
-- Reduced proxy attendance cases
-- System uptime during sessions
-- Demo completeness
-
----
-
-# 16. 🧪 Future Scope (Optional)
-
-- Face verification
-- GPS validation
-- Analytics dashboard
-- Integration with college ERP
-
----
-
-# 17. 🎬 Demo Flow (IMPORTANT)
-
-1. Teacher starts session
-2. QR displayed
+1. Lecturer starts session
+2. QR generated (session_id + expiry)
 3. Student scans QR
-4. Attendance recorded
-5. Student leaves app → attendance invalid
-6. Teacher ends session
-7. Final attendance shown
+4. Capture face + location
+5. Backend validates:
+
+   * Session active
+   * Face match
+   * Location within range
+6. Attendance stored
 
 ---
 
-# 18. 📌 Final Definition
+# 9. 🧠 Face Recognition Design
 
-This system is a **session-based, QR-authenticated attendance platform with active presence validation**, designed to reduce proxy attendance and improve classroom attendance integrity.
+## Model Options:
+
+* FaceNet
+* Dlib
+
+## Flow:
+
+```
+Image → Face Detection → Embedding → Compare → Decision
+```
+
+## Matching:
+
+* Cosine similarity
+* Threshold: 0.6–0.8
+
+---
+
+# 10. 📡 Location Validation
+
+* Use browser geolocation API
+* Validate within radius (50–100m)
+* Use Haversine formula
+
+---
+
+# 11. 🗄️ Database Design
+
+## Users Table
+
+```sql
+users (
+  id INT PRIMARY KEY,
+  name VARCHAR,
+  email VARCHAR,
+  role ENUM('student','lecturer')
+)
+```
+
+## Sections
+
+```sql
+sections (
+  id INT PRIMARY KEY,
+  name VARCHAR,
+  lecturer_id INT
+)
+```
+
+## Students
+
+```sql
+students (
+  id INT PRIMARY KEY,
+  user_id INT,
+  section_id INT,
+  face_embedding TEXT
+)
+```
+
+## Sessions
+
+```sql
+sessions (
+  id INT PRIMARY KEY,
+  section_id INT,
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  status VARCHAR
+)
+```
+
+## Attendance
+
+```sql
+attendance (
+  id INT PRIMARY KEY,
+  session_id INT,
+  student_id INT,
+  timestamp TIMESTAMP,
+  status VARCHAR,
+  reason VARCHAR
+)
+```
+
+---
+
+# 12. 🔌 API Design
+
+## Auth
+
+```
+POST /api/auth/register
+POST /api/auth/login
+```
+
+## Section
+
+```
+POST /api/section/create
+GET  /api/section/:id
+```
+
+## Session
+
+```
+POST /api/session/start
+POST /api/session/end
+```
+
+## Attendance
+
+```
+POST /api/attendance/mark
+GET  /api/attendance/:session_id
+```
+
+---
+
+# 13. 📁 Folder Structure
+
+## Frontend (React)
+
+```
+/frontend
+  /src
+    /components
+      QRScanner.jsx
+      FaceCapture.jsx
+    /pages
+      Login.jsx
+      Dashboard.jsx
+      Attendance.jsx
+    /services
+      api.js
+    /utils
+      geolocation.js
+```
+
+---
+
+## Backend (Flask)
+
+```
+/backend
+  /app
+    /routes
+      auth.py
+      session.py
+      attendance.py
+    /services
+      face_service.py
+      qr_service.py
+    /models
+      user.py
+      session.py
+      attendance.py
+    /utils
+      location.py
+      security.py
+```
+
+---
+
+# 14. 🧪 Validation Logic
+
+## Attendance Conditions:
+
+* Session active
+* QR valid
+* Face matched
+* Location valid
+* Not duplicate
+
+---
+
+# 15. ⚠️ Edge Cases
+
+* Poor lighting → retry face capture
+* GPS denied → reject
+* Network delay → allow small grace time
+* Duplicate attendance → block
+
+---
+
+# 16. 🔍 Security Considerations
+
+* JWT authentication
+* Signed QR tokens
+* Rate limiting
+* Input validation
+
+---
+
+# 17. 📊 Metrics
+
+* Attendance success rate
+* Face match accuracy
+* Proxy detection rate
+* API latency
+
+---
+
+# 18. 🚀 Future Enhancements
+
+* Liveness detection (anti-spoof)
+* Bluetooth proximity
+* AI-based fraud detection
+* Mobile app integration
+
+---
+
+# 19. 🧠 Limitations
+
+* GPS spoofing possible
+* Face spoofing possible
+* Web limitations vs mobile
+
+---
+
+# 20. ✅ Conclusion
+
+This system provides a **multi-layered attendance validation mechanism** using:
+
+* QR session control
+* Face recognition
+* Location verification
+
+It significantly reduces proxy attendance compared to traditional systems.
+
+---
+
 
 ---
