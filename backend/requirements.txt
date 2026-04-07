@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pyjwt
+deepface
+tf-keras
+opencv-python-headless
+python-multipart
+passlib[bcrypt]
+pydantic[email]
+pydantic-settings
