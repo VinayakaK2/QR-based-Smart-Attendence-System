@@ -1,54 +1,61 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Text
-from sqlalchemy.orm import relationship
-from ..database import Base
-import datetime
+"""
+MongoDB models and collection helpers for the attendance system.
+This module provides utilities for working with MongoDB collections.
+"""
+
+from database import get_db
+from bson import ObjectId
+from datetime import datetime
+
+# Collection names
+USERS_COLLECTION = "users"
+SECTIONS_COLLECTION = "sections"
+STUDENTS_COLLECTION = "students"
+SESSIONS_COLLECTION = "sessions"
+ATTENDANCE_COLLECTION = "attendance"
 
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), index=True)
-    email = Column(String(255), unique=True, index=True)
-    password_hash = Column(String(255))
-    role = Column(String(50))  # "student" or "lecturer"
+async def get_user_by_id(user_id: str):
+    """Get user by ID"""
+    db = get_db()
+    return await db[USERS_COLLECTION].find_one({"_id": ObjectId(user_id)})
 
 
-class Section(Base):
-    __tablename__ = "sections"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255))
-    lecturer_id = Column(Integer, ForeignKey("users.id"))
+async def get_user_by_email(email: str):
+    """Get user by email"""
+    db = get_db()
+    return await db[USERS_COLLECTION].find_one({"email": email})
 
 
-class Student(Base):
-    __tablename__ = "students"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    section_id = Column(Integer, ForeignKey("sections.id"))
-    face_embedding = Column(Text)  # JSON string of list of floats (FaceNet 128-d)
+async def create_user(user_data: dict):
+    """Create new user"""
+    db = get_db()
+    result = await db[USERS_COLLECTION].insert_one(user_data)
+    return result.inserted_id
 
 
-class Session(Base):
-    __tablename__ = "sessions"
-    id = Column(Integer, primary_key=True, index=True)
-    section_id = Column(Integer, ForeignKey("sections.id"))
-    start_time = Column(DateTime, default=datetime.datetime.utcnow)
-    end_time = Column(DateTime)
-    status = Column(String(20), default="ACTIVE")  # ACTIVE | EXPIRED
-    lat = Column(Float, nullable=True)   # Lecturer's live latitude at session start
-    lng = Column(Float, nullable=True)   # Lecturer's live longitude at session start
+async def get_section_by_id(section_id: str):
+    """Get section by ID"""
+    db = get_db()
+    return await db[SECTIONS_COLLECTION].find_one({"_id": ObjectId(section_id)})
 
 
-class Attendance(Base):
-    __tablename__ = "attendance"
-    id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer, ForeignKey("sessions.id"))
-    student_id = Column(Integer, ForeignKey("students.id"))
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
-    status = Column(String(20))   # PRESENT | REJECTED
-    reason = Column(String(100), nullable=True)
+async def get_student_by_user_id(user_id: str):
+    """Get student record by user ID"""
+    db = get_db()
+    return await db[STUDENTS_COLLECTION].find_one({"user_id": ObjectId(user_id)})
 
-    # Unique constraint: one student per session
-    __table_args__ = (
-        __import__("sqlalchemy").UniqueConstraint("session_id", "student_id", name="uq_attendance_session_student"),
-    )
+
+async def get_session_by_id(session_id: str):
+    """Get session by ID"""
+    db = get_db()
+    return await db[SESSIONS_COLLECTION].find_one({"_id": ObjectId(session_id)})
+
+
+async def get_attendance_record(session_id: str, student_id: str):
+    """Get attendance record for a student in a session"""
+    db = get_db()
+    return await db[ATTENDANCE_COLLECTION].find_one({
+        "session_id": ObjectId(session_id),
+        "student_id": ObjectId(student_id)
+    })

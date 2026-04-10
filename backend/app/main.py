@@ -1,13 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine
-from .models import Base
+from contextlib import asynccontextmanager
+from .database import connect_to_mongo, close_mongo_connection
 from .api import auth, section, session, attendance
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Smart Attendance System", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await connect_to_mongo()
+    yield
+    # Shutdown
+    await close_mongo_connection()
+
+
+app = FastAPI(
+    title="Smart Attendance System",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # CORS for React frontend
 app.add_middleware(

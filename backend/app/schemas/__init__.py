@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -9,14 +9,14 @@ class RoleEnum(str, Enum):
     lecturer = "lecturer"
 
 
+# ============ User Models ============
 class UserCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6, max_length=70)
     role: RoleEnum
-    # For students only
-    section_id: Optional[int] = None
-    face_image_base64: Optional[str] = None  # Mandatory if student
+    section_id: Optional[str] = None
+    face_image_base64: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -27,44 +27,28 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    user_id: int
+    user_id: str
     role: str
     name: str
 
 
+# ============ Section Models ============
 class SectionCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=255)
 
 
-class SectionResponse(BaseModel):
-    id: int
-    name: str
-    lecturer_id: int
-
-    model_config = {"from_attributes": True}
-
-
+# ============ Session Models ============
 class SessionCreate(BaseModel):
-    section_id: int
-    duration_minutes: int
+    section_id: str
+    duration_minutes: Optional[int] = None
     lecturer_lat: float
     lecturer_lng: float
 
 
-class SessionResponse(BaseModel):
-    id: int
-    section_id: int
-    start_time: datetime
-    end_time: datetime
-    status: str
-    qr_token: str
-
-    model_config = {"from_attributes": True}
-
-
+# ============ Attendance Models ============
 class AttendanceMark(BaseModel):
-    session_id: int
-    qr_token: str
+    session_id: str
+    qr_token: Optional[str] = None
     face_image_base64: str
     lat: float
     lng: float
