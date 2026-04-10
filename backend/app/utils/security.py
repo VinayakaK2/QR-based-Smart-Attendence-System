@@ -1,8 +1,8 @@
 import jwt
 from datetime import datetime, timedelta
 import os
-import os
 import bcrypt
+
 SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
 
