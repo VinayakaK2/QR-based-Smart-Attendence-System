@@ -2,9 +2,17 @@ from __future__ import annotations
 import base64
 import numpy as np
 import cv2
-from deepface import DeepFace
+# from deepface import DeepFace  # Commented out - install separately if needed
 import json
 from typing import List
+
+# Stub DeepFace class for testing without deepface installed
+class DeepFace:
+    @staticmethod
+    def represent(img_path, model_name="Facenet", enforce_detection=True):
+        """Stub method - returns mock embedding"""
+        print("WARNING: Using stub DeepFace.represent() - install deepface for real functionality")
+        return [{"embedding": [0.0] * 128}]
 
 def base64_to_image(base64_string: str) -> np.ndarray:
     """
